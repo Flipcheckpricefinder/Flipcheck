@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>FlipCheck — Reselling Profit Checker</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--text:#101114;--muted:#6b7280;--line:#e5e7eb;--dark:#111827;--green:#15803d;--greenbg:#dcfce7;--amber:#a16207;--amberbg:#fef3c7;--red:#b91c1c;--redbg:#fee2e2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{max-width:600px;margin:auto;padding:18px 16px 42px}
+header{padding:12px 4px 18px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:30px;font-weight:850;letter-spacing:-1.3px}.pill{font-size:12px;font-weight:700;background:#e5e7eb;border-radius:99px;padding:7px 10px}
+.card{background:var(--card);border-radius:22px;padding:18px;margin:12px 0;box-shadow:0 6px 24px #0000000b}
+h2{font-size:19px;margin:0 0 14px}.sub{color:var(--muted);font-size:14px;margin:-8px 0 15px}
+.search{display:flex;gap:8px}.search input{flex:1}
+input{width:100%;border:1px solid var(--line);background:#fafafa;border-radius:13px;padding:14px;font-size:16px;outline:none}
+input:focus{border-color:#111827;background:white}
+button{border:0;border-radius:13px;padding:14px 16px;background:var(--dark);color:white;font-weight:750;font-size:15px;cursor:pointer}
+button.secondary{width:100%;margin-top:9px;background:#eef0f2;color:#111}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;font-weight:750;margin:12px 0 6px;color:#4b5563}
+.full{grid-column:1/-1}
+.primary{width:100%;margin-top:15px;font-size:16px}
+.result{border-radius:18px;padding:17px;margin-top:14px}
+.green{background:var(--greenbg);color:var(--green)}.amber{background:var(--amberbg);color:var(--amber)}.red{background:var(--redbg);color:var(--red)}
+.verdict{font-size:24px;font-weight:850}.profit{font-size:31px;font-weight:850;letter-spacing:-.8px;margin:3px 0 12px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;color:#59616d}.row strong{color:#111}
+.listing{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--line)}.listing:first-child{border-top:0}
+.itemname{font-weight:700}.condition{font-size:12px;color:var(--muted);margin-top:3px}.price{font-weight:850;white-space:nowrap}
+.badge{font-size:11px;font-weight:750;border-radius:99px;padding:5px 8px;background:#eef0f2;display:inline-block;margin-top:6px}
+.note{font-size:12px;line-height:1.45;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:10px 0}
+.hidden{display:none}
+footer{text-align:center;color:#9ca3af;font-size:11px;padding:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">FlipCheck</div><div class="pill">V1 • Prototype</div></header>
+
+<div class="card">
+<h2>🔎 Find the market price</h2>
+<p class="sub">Search an item, then compare the market before you buy.</p>
+<div class="search">
+<input id="query" placeholder="e.g. Pokémon cards, PS2 games">
+<button onclick="searchItem()">SEARCH</button>
+</div>
+<button class="secondary" onclick="scanDemo()">📷 Scan item (demo)</button>
+<p class="note">This version uses sample market results. The live eBay connection requires an approved eBay API application and server-side authentication.</p>
+</div>
+
+<div class="card">
+<h2>💷 Your deal</h2>
+<div class="grid">
+<div class="field"><label>Buy price (£)</label><input id="buy" type="number" min="0" step=".01" value="5"></div>
+<div class="field"><label>Postage to you (£)</label><input id="inpost" type="number" min="0" step=".01" value="2"></div>
+<div class="field"><label>Postage to buyer (£)</label><input id="outpost" type="number" min="0" step=".01" value="3"></div>
+<div class="field"><label>Other costs (£)</label><input id="other" type="number" min="0" step=".01" value="0"></div>
+<div class="field full"><label>Selling fees (£)</label><input id="fees" type="number" min="0" step=".01" value="0"></div>
+<div class="field full"><label>Minimum profit you want (£)</label><input id="target" type="number" min="0" step=".01" value="10"></div>
+</div>
+<button class="primary" onclick="calculate()">CHECK THE FLIP</button>
+<div id="result" class="result"></div>
+</div>
+
+<div class="card">
+<h2>📊 Market comparison</h2>
+<div id="market" class="empty">Search for an item above.</div>
+</div>
+
+<div class="card">
+<h2>⚙️ What FlipCheck calculates</h2>
+<div class="row"><span>Total money in</span><strong id="totalin">£0.00</strong></div>
+<div class="row"><span>Expected sale price</span><strong id="sale">£0.00</strong></div>
+<div class="row"><span>Estimated profit</span><strong id="profit">£0.00</strong></div>
+<div class="row"><span>Profit margin</span><strong id="margin">0.0%</strong></div>
+<div class="row"><span>Maximum buy price</span><strong id="maxbuy">£0.00</strong></div>
+<p class="note">The maximum buy price is based on your chosen minimum profit and the selected expected sale price.</p>
+</div>
+
+<footer>FlipCheck • Built as a zero-cost prototype</footer>
+</div>
+
+<script>
+let marketPrice=20;
+const demoSets={
+ "ps2": [["EA Sports Cricket 2002","Good","£3.50"],["EA Sports Cricket 2002","Very Good","£4.99"],["EA Sports Cricket 2002","Good","£6.00"],["EA Sports Cricket 2002","Near Mint","£8.95"]],
+ "pokemon":[["Pokémon collection","Used","£18.00"],["Pokémon collection","Very Good","£24.99"],["Pokémon cards","Good","£29.00"],["Pokémon bundle","Like New","£34.95"]],
+ "default":[["Comparable listing","Good","£14.99"],["Comparable listing","Very Good","£19.99"],["Comparable listing","Good","£22.50"],["Comparable listing","Like New","£27.99"]]
+};
+function n(id){return parseFloat(document.getElementById(id).value)||0}
+function money(x){return "£"+Math.max(0,x).toFixed(2)}
+function median(a){a=[...a].sort((x,y)=>x-y);let m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+function setMarket(items){
+ document.getElementById("market").innerHTML=items.map(x=>`<div class="listing"><div><div class="itemname">${x[0]}</div><div class="condition">${x[1]}</div><span class="badge">Comparable</span></div><div class="price">${x[2]}</div></div>`).join("");
+ marketPrice=median(items.map(x=>parseFloat(x[2].replace("£",""))));
+ calculate();
+}
+function searchItem(){
+ const q=document.getElementById("query").value.trim().toLowerCase();
+ if(!q){document.getElementById("market").innerHTML='<div class="empty">Type an item to search.</div>';return}
+ let items=demoSets.default;
+ if(q.includes("cricket")||q.includes("ps2")) items=demoSets.ps2;
+ else if(q.includes("pokemon")||q.includes("pokémon")) items=demoSets.pokemon;
+ setMarket(items.map(x=>[q.replace(/(^|\s)\S/g,s=>s.toUpperCase()),x[1],x[2]]));
+}
+function scanDemo(){document.getElementById("query").value="PS2 game";searchItem()}
+function calculate(){
+ const buy=n("buy"),ip=n("inpost"),op=n("outpost"),other=n("other"),fees=n("fees"),target=n("target");
+ const profit=marketPrice-buy-ip-op-other-fees;
+ const margin=marketPrice?profit/marketPrice*100:0;
+ const max=marketPrice-ip-op-other-fees-target;
+ const cls=profit>=target?"green":profit>=target*.5?"amber":"red";
+ const verdict=profit>=target?"🟢 BUY IT":profit>=target*.5?"🟠 MAYBE":"🔴 LEAVE IT";
+ const r=document.getElementById("result");r.className="result "+cls;
+ r.innerHTML=`<div class="verdict">${verdict}</div><div class="profit">${money(profit)} profit</div><div class="row"><span>Expected sale</span><strong>${money(marketPrice)}</strong></div><div class="row"><span>Profit margin</span><strong>${margin.toFixed(1)}%</strong></div><div class="row"><span>Max buy for ${money(target)} profit</span><strong>${money(max)}</strong></div>`;
+ document.getElementById("totalin").textContent=money(buy+ip+op+other+fees);
+ document.getElementById("sale").textContent=money(marketPrice);
+ document.getElementById("profit").textContent=money(profit);
+ document.getElementById("margin").textContent=margin.toFixed(1)+"%";
+ document.getElementById("maxbuy").textContent=money(max);
+}
+document.querySelectorAll("input").forEach(x=>x.addEventListener("input",calculate));
+calculate();
+</script>
+</body>
+</html>
